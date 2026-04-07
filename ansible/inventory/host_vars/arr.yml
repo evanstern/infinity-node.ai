@@ -1,0 +1,21 @@
+---
+services:
+  - radarr
+  - sonarr
+  - lidarr
+  - prowlarr
+  - jellyseerr
+  - flaresolverr
+  - huntarr
+
+nfs_mounts:
+  - src: 192.168.1.80:/volume1/media
+    path: /mnt/media
+    opts: rw,nfsvers=4.1
+  - src: 192.168.1.80:/volume1/downloads
+    path: /mnt/downloads
+    opts: rw,nfsvers=4.1
+
+arr_downloads_host: downloads
+arr_media_root: /mnt/media
+arr_downloads_root: /mnt/downloads

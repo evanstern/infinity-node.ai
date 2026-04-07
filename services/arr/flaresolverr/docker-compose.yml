@@ -1,0 +1,24 @@
+name: flaresolverr
+
+services:
+  flaresolverr:
+    container_name: flaresolverr
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    restart: unless-stopped
+    ports:
+      - ${PORT:-8191}:8191
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - CAPTCHA_SOLVER_TIMEOUT=${CAPTCHA_SOLVER_TIMEOUT:-60000}
+      - TEST_URL_TIMEOUT=${TEST_URL_TIMEOUT:-30000}
+      - SESSION_TTL=${SESSION_TTL:-60}
+      - USER_AGENT=${USER_AGENT:-Mozilla/5.0}
+
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

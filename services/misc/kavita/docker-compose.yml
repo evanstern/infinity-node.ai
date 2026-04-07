@@ -1,0 +1,31 @@
+name: kavita
+
+services:
+  kavita:
+    image: lscr.io/linuxserver/kavita:latest
+    container_name: kavita
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=${UMASK}
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - ${LIBRARY_PATH}:/library:ro
+    ports:
+      - ${PORT}:5000
+    networks:
+      - default
+      - traefik-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

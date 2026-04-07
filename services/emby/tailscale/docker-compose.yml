@@ -1,0 +1,43 @@
+version: "3.8"
+
+services:
+  tailscale:
+    image: tailscale/tailscale:stable
+    container_name: tailscale
+    network_mode: host
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - ${TS_STATE_DIR_HOST:-/home/evan/config/tailscale}:/var/lib/tailscale
+      - ${TS_TUN_DEVICE:-/dev/net/tun}:${TS_TUN_DEVICE:-/dev/net/tun}
+    environment:
+      TS_HOSTNAME: ${TS_HOSTNAME:-vm-100}
+      TS_ROUTES: ${TS_ROUTES:-}
+      TS_ACCEPT_DNS: ${TS_ACCEPT_DNS:-false}
+      TS_EXIT_NODE: ${TS_EXIT_NODE:-false}
+      TS_EXTRA_ARGS: ${TS_EXTRA_ARGS:-}
+      TS_AUTHKEY: ${TS_AUTHKEY:-}
+      TS_AUTHKEY_FILE: ${TS_AUTHKEY_FILE:-}
+    entrypoint: >
+      /bin/sh -c '
+        tailscaled --state=/var/lib/tailscale/tailscaled.state --socket=/var/run/tailscale/tailscaled.sock &
+        for i in $(seq 1 30); do tailscale status >/dev/null 2>&1 && break; sleep 1; done
+        AUTHKEY="${TS_AUTHKEY:-}"
+        if [ -z "$$AUTHKEY" ] && [ -n "$${TS_AUTHKEY_FILE:-}" ] && [ -f "$${TS_AUTHKEY_FILE}" ]; then
+          AUTHKEY=$(cat "$${TS_AUTHKEY_FILE}")
+        fi
+        if [ -z "$$AUTHKEY" ]; then
+          echo "TS_AUTHKEY not set and no TS_AUTHKEY_FILE found" >&2
+          exit 1
+        fi
+        ROUTES_ARG=""
+        [ -n "$${TS_ROUTES:-}" ] && ROUTES_ARG="--advertise-routes=$${TS_ROUTES}"
+        DNS_ARG="--accept-dns=$${TS_ACCEPT_DNS:-false}"
+        EXIT_ARG=""
+        [ "$${TS_EXIT_NODE:-false}" = "true" ] && EXIT_ARG="--advertise-exit-node"
+        tailscale up --authkey="$$AUTHKEY" --hostname="$${TS_HOSTNAME:-vm-100}" $$ROUTES_ARG $$DNS_ARG $$EXIT_ARG $${TS_EXTRA_ARGS:-}
+        wait
+      '
+    restart: unless-stopped

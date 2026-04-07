@@ -1,0 +1,41 @@
+---
+- name: Deploy DIUN stack
+  hosts: "{{ target | default('docker_hosts') }}"
+  gather_facts: false
+
+  vars:
+    remote_base: "{{ stack_root | default('/opt/stacks') }}"
+    diun_remote_dir: "{{ remote_base }}/{{ diun_stack_name }}"
+    diun_gotify_token: "{{ lookup('community.general.bitwarden', diun_gotify_token_item, field=diun_gotify_token_field) }}"
+
+  tasks:
+    - name: Ensure DIUN stack directory exists
+      ansible.builtin.file:
+        path: "{{ diun_remote_dir }}"
+        state: directory
+        owner: "{{ compose_project_owner }}"
+        group: "{{ compose_project_group }}"
+        mode: "{{ compose_project_mode }}"
+
+    - name: Render DIUN configuration
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/diun.yml.j2"
+        dest: "{{ diun_remote_dir }}/diun.yml"
+        owner: "{{ compose_project_owner }}"
+        group: "{{ compose_project_group }}"
+        mode: "0644"
+
+    - name: Render DIUN compose file
+      ansible.builtin.template:
+        src: "{{ playbook_dir }}/../templates/diun-compose.yml.j2"
+        dest: "{{ diun_remote_dir }}/docker-compose.yml"
+        owner: "{{ compose_project_owner }}"
+        group: "{{ compose_project_group }}"
+        mode: "0644"
+
+    - name: Start DIUN stack
+      community.docker.docker_compose_v2:
+        project_src: "{{ diun_remote_dir }}"
+        state: present
+        pull: always
+        remove_orphans: true

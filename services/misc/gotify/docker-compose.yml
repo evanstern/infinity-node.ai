@@ -1,0 +1,21 @@
+name: gotify
+services:
+  gotify:
+    image: gotify/server:latest
+    container_name: gotify
+    restart: unless-stopped
+    ports:
+      - "8070:80"
+    volumes:
+      - gotify-data:/app/data
+    networks:
+      - default
+      - traefik-network
+
+volumes:
+  gotify-data:
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

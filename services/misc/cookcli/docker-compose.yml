@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  cookcli:
+    container_name: cookcli
+    image: inigochoa/cookcli:latest
+    restart: unless-stopped
+    ports:
+      - "${COOKCLI_PORT:-9080}:9080"
+    stdin_open: true
+    tty: true
+    environment:
+      - TZ=${TZ:-America/Toronto}
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - COOKCLI_ENV=${COOKCLI_ENV:-production}
+    volumes:
+      - ${COOKCLI_RECIPES_PATH:-/home/evan/data/cookcli/recipes}:/recipes
+    networks:
+      - default
+      - traefik-network
+    deploy:
+      resources:
+        limits:
+          cpus: ${COOKCLI_CPUS:-0.10}
+          memory: ${COOKCLI_MEMORY_LIMIT:-256M}
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

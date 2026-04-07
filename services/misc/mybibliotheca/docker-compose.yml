@@ -1,0 +1,25 @@
+name: mybibliotheca
+services:
+  mybibliotheca:
+    image: pickles4evaaaa/mybibliotheca:1.1.1
+    container_name: mybibliotheca
+    restart: unless-stopped
+    ports:
+      - ${PORT}:5054
+    volumes:
+      - ${DATA_PATH}:/app/data
+      - /etc/timezone:/etc/timezone:ro
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}
+      - TIMEZONE=${TIMEZONE}
+      - WORKERS=${WORKERS}
+      - READING_STREAK_OFFSET=${READING_STREAK_OFFSET:-0}
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

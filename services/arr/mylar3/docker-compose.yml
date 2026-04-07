@@ -1,0 +1,26 @@
+name: mylar3
+
+services:
+  mylar3:
+    container_name: mylar3
+    image: lscr.io/linuxserver/mylar3:latest
+    restart: unless-stopped
+
+    ports:
+      - ${MYLAR_PORT:-8085}:8090
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Toronto}
+
+    volumes:
+      - ${MYLAR_CONFIG_PATH:-/home/evan/data/mylar3/config}:/config
+      - ${MYLAR_COMICS_PATH:-/mnt/video/Mylar3/comics}:/comics
+      - ${MYLAR_DOWNLOADS_PATH:-/mnt/video/Mylar3/downloads}:/downloads
+      - ${MYLAR_COMPLETE_PATH:-/mnt/complete}:/complete
+
+    deploy:
+      resources:
+        limits:
+          memory: ${MYLAR_MEMORY_LIMIT:-512M}

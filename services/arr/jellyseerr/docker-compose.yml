@@ -1,0 +1,24 @@
+name: jellyseerr
+
+services:
+  jellyseerr:
+    container_name: jellyseerr
+    image: fallenbagel/jellyseerr:latest
+    restart: unless-stopped
+    ports:
+      - ${PORT:-5055}:5055
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - TZ=${TZ:-America/Toronto}
+      - JELLYFIN_TYPE=${MEDIA_SERVER_TYPE:-emby}
+    volumes:
+      - ${CONFIG_PATH}:/app/config
+
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

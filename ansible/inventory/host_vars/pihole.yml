@@ -1,0 +1,10 @@
+---
+services:
+  - pihole
+
+dns_domain: local.infinity-node.win
+dns_records_file: /home/coda/projects/infinity-node.ai/master/config/dns-records.json
+pihole_web_port: 80
+pihole_upstream_dns:
+  - 1.1.1.1
+  - 1.0.0.1

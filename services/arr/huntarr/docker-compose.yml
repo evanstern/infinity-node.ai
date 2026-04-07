@@ -1,0 +1,22 @@
+name: huntarr
+
+services:
+  huntarr:
+    container_name: huntarr
+    image: huntarr/huntarr:latest
+    restart: always
+    ports:
+      - ${PORT:-9705}:9705
+    environment:
+      - TZ=${TZ:-America/Toronto}
+    volumes:
+      - ${CONFIG_PATH}:/config
+
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

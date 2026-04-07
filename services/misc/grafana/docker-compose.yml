@@ -1,0 +1,23 @@
+name: grafana
+services:
+  grafana:
+    image: grafana/grafana-oss:latest
+    container_name: grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SERVER_ROOT_URL: https://grafana.local.infinity-node.win
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    networks:
+      - default
+      - traefik-network
+
+volumes:
+  grafana-storage:
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

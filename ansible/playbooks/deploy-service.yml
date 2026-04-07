@@ -1,0 +1,73 @@
+---
+- name: Deploy Docker service
+  hosts: docker_hosts
+  gather_facts: false
+
+  vars:
+    service: ""
+    remote_base: "{{ stack_root | default('/opt/stacks') }}"
+    service_src_dir: "{{ playbook_dir }}/../../services/{{ inventory_hostname }}/{{ service }}"
+    env_template_src: "{{ service_src_dir }}/.env.j2"
+
+  pre_tasks:
+    - name: Ensure service variable is set
+      ansible.builtin.fail:
+        msg: You must pass -e service=<service_name>
+      when: service == ""
+
+    - name: Check for local service directory
+      ansible.builtin.stat:
+        path: "{{ service_src_dir }}"
+      delegate_to: localhost
+      become: false
+      register: service_src_dir_stat
+
+    - name: Fail when requested service is missing
+      ansible.builtin.fail:
+        msg: "Service source directory not found: {{ service_src_dir }}"
+      when: not service_src_dir_stat.stat.exists
+
+    - name: Check for optional env template
+      ansible.builtin.stat:
+        path: "{{ env_template_src }}"
+      delegate_to: localhost
+      become: false
+      register: env_template_stat
+
+  tasks:
+    - name: Ensure remote stack directory exists
+      ansible.builtin.file:
+        path: "{{ remote_base }}/{{ service }}"
+        state: directory
+        owner: "{{ compose_project_owner }}"
+        group: "{{ compose_project_group }}"
+        mode: "{{ compose_project_mode }}"
+
+    - name: Copy service directory to target host
+      ansible.builtin.copy:
+        src: "{{ service_src_dir }}/"
+        dest: "{{ remote_base }}/{{ service }}/"
+        mode: preserve
+        directory_mode: "0755"
+
+    - name: Render optional service env file
+      ansible.builtin.template:
+        src: "{{ env_template_src }}"
+        dest: "{{ remote_base }}/{{ service }}/.env"
+        owner: "{{ compose_project_owner }}"
+        group: "{{ compose_project_group }}"
+        mode: "0600"
+      when: env_template_stat.stat.exists
+
+    - name: Remove template source from deployed stack
+      ansible.builtin.file:
+        path: "{{ remote_base }}/{{ service }}/.env.j2"
+        state: absent
+      when: env_template_stat.stat.exists
+
+    - name: Run docker compose for service
+      community.docker.docker_compose_v2:
+        project_src: "{{ remote_base }}/{{ service }}"
+        state: present
+        pull: always
+        remove_orphans: true

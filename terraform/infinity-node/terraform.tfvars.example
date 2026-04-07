@@ -1,0 +1,7 @@
+proxmox_endpoint  = "https://infinity-node.local.infinity-node.win:8006/"
+proxmox_api_token = "root@pam!token-name=replace-with-api-token-secret"
+gateway           = "192.168.1.1"
+ssh_public_key    = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIreplace-with-your-public-key coda@example"
+vm_username       = "coda"
+vm_password       = "replace-with-cloud-init-password"
+proxmox_insecure  = true

@@ -1,0 +1,6 @@
+---
+services: []
+
+bootstrap_only: true
+stack_root: /opt/stacks
+notes: Local development target for future workloads.

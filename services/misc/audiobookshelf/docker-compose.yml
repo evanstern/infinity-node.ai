@@ -1,0 +1,24 @@
+name: audiobookshelf
+services:
+    audiobookshelf:
+        image: ghcr.io/advplyr/audiobookshelf:latest
+        container_name: audiobookshelf
+        ports:
+            - ${PORT}:80
+        volumes:
+            - ${AUDIOBOOKS_PATH}:/audiobooks
+            - ${PODCASTS_PATH}:/podcasts
+            - ${BOOKS_PATH}:/books
+            - ${CONFIG_PATH}:/config
+            - ${METADATA_PATH}:/metadata
+        environment:
+            - TZ=${TZ}
+        restart: unless-stopped
+        networks:
+            - default
+            - traefik-network
+
+networks:
+    traefik-network:
+        external: true
+        name: traefik-network

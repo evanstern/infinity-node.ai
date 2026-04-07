@@ -1,0 +1,35 @@
+name: sonarr
+
+services:
+  sonarr:
+    container_name: sonarr
+    image: lscr.io/linuxserver/sonarr:latest
+    restart: unless-stopped
+
+    ports:
+      - ${PORT:-8989}:8989
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Toronto}
+
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - ${TV_PATH}:/tv
+      - ${DOWNLOADS_PATH}:/downloads
+      - ${COMPLETE_PATH:-/mnt/complete}:/complete
+
+    networks:
+      - default
+      - traefik-network
+
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT:-1G}
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

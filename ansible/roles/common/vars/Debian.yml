@@ -1,0 +1,19 @@
+sudo_group: sudo
+
+common_packages:
+  - curl
+  - git
+  - htop
+  - vim
+  - unattended-upgrades
+  - wget
+  - rsync
+  - jq
+  - net-tools
+  - dnsutils
+  - iputils-ping
+  - less
+  - tree
+  - lsof
+  - qemu-guest-agent
+  - tzdata

@@ -1,0 +1,12 @@
+watch:
+  workers: {{ diun_watch_workers }}
+  schedule: "{{ diun_scan_schedule }}"
+
+providers:
+  docker:
+    watchByDefault: true
+
+notif:
+  gotify:
+    endpoint: "{{ diun_gotify_url }}"
+    token: "{{ diun_gotify_token }}"

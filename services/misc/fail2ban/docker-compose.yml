@@ -1,0 +1,25 @@
+name: fail2ban
+
+services:
+  fail2ban:
+    image: lscr.io/linuxserver/fail2ban:latest
+    container_name: fail2ban
+    restart: unless-stopped
+
+    network_mode: host
+
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Toronto}
+
+    volumes:
+      - /home/evan/.config/fail2ban:/config
+      - /var/log:/var/log:ro
+      - ${TRAEFIK_LOG_PATH}:/remotelogs/traefik:ro
+      - ${NAVIDROME_LOG_PATH}:/remotelogs/navidrome:ro
+      - ${EMBY_LOG_PATH:-/home/evan/.config/fail2ban/unused}:/remotelogs/emby:ro

@@ -1,0 +1,12 @@
+services:
+    olm:
+        image: fosrl/olm:latest
+        container_name: olm
+        restart: unless-stopped
+        network_mode: host
+        devices:
+            - /dev/net/tun:/dev/net/tun
+        environment:
+            - PANGOLIN_ENDPOINT=${PANGOLIN_ENDPOINT}
+            - OLM_ID=${OLM_ID}
+            - OLM_SECRET=${OLM_SECRET}

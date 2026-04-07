@@ -1,0 +1,17 @@
+---
+services:
+  - emby
+
+nfs_mounts:
+  - src: 192.168.1.80:/volume1/media
+    path: /mnt/media
+    opts: rw,nfsvers=4.1
+  - src: 192.168.1.80:/volume1/config-backups
+    path: /mnt/config-backups
+    opts: rw,nfsvers=4.1
+
+emby_gpu_devices:
+  - /dev/dri/renderD128
+  - /dev/dri/card0
+emby_transcode_path: /transcode
+emby_transcode_tmpfs_size: 4g

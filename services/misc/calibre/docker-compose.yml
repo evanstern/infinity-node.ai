@@ -1,0 +1,65 @@
+name: calibre
+
+services:
+  calibre:
+    container_name: calibre
+    image: lscr.io/linuxserver/calibre:latest
+    restart: unless-stopped
+
+    ports:
+      - ${CALIBRE_GUI_PORT:-8265}:8080
+      - ${CALIBRE_SERVER_PORT:-8266}:8081
+      - ${CALIBRE_WIRELESS_PORT:-9090}:9090
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+      - PASSWORD=${CALIBRE_PASSWORD:-}
+      - CLI_ARGS=${CALIBRE_CLI_ARGS:-}
+
+    volumes:
+      - ${CALIBRE_CONFIG_PATH}:/config
+      - ${CALIBRE_LIBRARY_PATH}:/library
+      - ${BOOKS_PATH}:/books
+
+    deploy:
+      resources:
+        limits:
+          memory: ${CALIBRE_MEMORY_LIMIT:-2G}
+    networks:
+      - default
+      - traefik-network
+
+  calibre-web:
+    container_name: calibre-web
+    image: lscr.io/linuxserver/calibre-web:latest
+    restart: unless-stopped
+    depends_on:
+      - calibre
+
+    ports:
+      - ${CALIBRE_WEB_PORT:-8267}:8083
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+      - DOCKER_MODS=${CALIBRE_WEB_DOCKER_MODS:-linuxserver/mods:universal-calibre}
+
+    volumes:
+      - ${CALIBRE_WEB_CONFIG_PATH}:/config
+      - ${CALIBRE_LIBRARY_PATH}:/library
+
+    deploy:
+      resources:
+        limits:
+          memory: ${CALIBRE_WEB_MEMORY_LIMIT:-1G}
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

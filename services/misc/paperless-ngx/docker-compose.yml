@@ -1,0 +1,104 @@
+name: paperless-ngx
+services:
+  broker:
+    image: docker.io/library/redis:7
+    container_name: paperless_broker
+    restart: unless-stopped
+    volumes:
+      - ${REDIS_DATA_PATH}:/data
+
+  db:
+    image: docker.io/library/postgres:16
+    container_name: paperless_db
+    restart: unless-stopped
+    volumes:
+      - ${POSTGRES_DATA_PATH}:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  webserver:
+    image: paperlessngx/paperless-ngx:latest
+    container_name: paperless_webserver
+    restart: unless-stopped
+    depends_on:
+      - db
+      - broker
+    ports:
+      - "${PORT}:8000"
+    volumes:
+      - ${DATA_PATH}:/usr/src/paperless/data
+      - ${MEDIA_PATH}:/usr/src/paperless/media
+      - ${EXPORT_PATH}:/usr/src/paperless/export
+      - ${CONSUME_PATH}:/usr/src/paperless/consume
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBHOST: db
+      PAPERLESS_TIKA_ENABLED: 1
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_URL: ${PAPERLESS_URL}
+      PAPERLESS_SECRET_KEY: ${PAPERLESS_SECRET_KEY}
+      PAPERLESS_TIME_ZONE: ${PAPERLESS_TIME_ZONE}
+      PAPERLESS_OCR_LANGUAGE: ${PAPERLESS_OCR_LANGUAGE}
+      PAPERLESS_ADMIN_USER: ${PAPERLESS_ADMIN_USER}
+      PAPERLESS_ADMIN_PASSWORD: ${PAPERLESS_ADMIN_PASSWORD}
+      PAPERLESS_ADMIN_MAIL: ${PAPERLESS_ADMIN_MAIL}
+      PAPERLESS_CONSUMER_POLLING: ${PAPERLESS_CONSUMER_POLLING}
+    networks:
+      - default
+      - traefik-network
+
+  gotenberg:
+    image: gotenberg/gotenberg:7.9.2
+    restart: always
+    container_name: paperless_gotenberg
+    command:
+      - "gotenberg"
+      - "--log-level=debug"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-disable-routes=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+      - "--api-timeout=600s"
+
+  tika:
+    image: docker.io/apache/tika:latest
+    container_name: paperless_tika
+    restart: always
+
+  paperless-ai:
+    image: clusterzx/paperless-ai
+    container_name: paperless_ai
+    restart: unless-stopped
+    depends_on:
+      - webserver
+    ports:
+      - "${PAPERLESS_AI_PORT:-3010}:${PAPERLESS_AI_PORT:-3010}"
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      PAPERLESS_AI_PORT: ${PAPERLESS_AI_PORT:-3010}
+      RAG_SERVICE_URL: http://webserver:8000
+      RAG_SERVICE_ENABLED: "true"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - paperless-ai-data:/app/data
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network
+
+volumes:
+  data:
+  media:
+  pgdata:
+  redisdata:
+  paperless-ai-data:

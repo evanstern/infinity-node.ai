@@ -1,0 +1,19 @@
+sudo_group: wheel
+
+common_packages:
+  - curl
+  - git
+  - htop
+  - vim
+  - dnf-automatic
+  - wget
+  - rsync
+  - jq
+  - net-tools
+  - bind-utils
+  - iputils
+  - less
+  - tree
+  - lsof
+  - qemu-guest-agent
+  - tzdata

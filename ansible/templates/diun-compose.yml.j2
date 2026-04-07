@@ -1,0 +1,12 @@
+services:
+  diun:
+    image: {{ diun_image }}
+    container_name: diun
+    restart: unless-stopped
+    command: serve
+    environment:
+      TZ: {{ diun_time_zone }}
+      DIUN_CONFIG: /diun/diun.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./diun.yml:/diun/diun.yml:ro

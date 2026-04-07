@@ -1,0 +1,50 @@
+name: forgejo
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forgejo-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=forgejo
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=forgejo
+    volumes:
+      - ${DATA_PATH}/postgres:/var/lib/postgresql/data
+
+  forgejo:
+    image: codeberg.org/forgejo/forgejo:14-rootless
+    container_name: forgejo
+    restart: unless-stopped
+    user: "${PUID}:${PGID}"
+    environment:
+      - USER_UID=${PUID}
+      - USER_GID=${PGID}
+      - FORGEJO__database__DB_TYPE=postgres
+      - FORGEJO__database__HOST=postgres:5432
+      - FORGEJO__database__NAME=forgejo
+      - FORGEJO__database__USER=forgejo
+      - FORGEJO__database__PASSWD=${POSTGRES_PASSWORD}
+      - FORGEJO__server__DOMAIN=${DOMAIN}
+      - FORGEJO__server__SSH_DOMAIN=${SSH_DOMAIN}
+      - FORGEJO__server__ROOT_URL=${ROOT_URL}
+      - FORGEJO__server__SSH_PORT=${SSH_PORT}
+      - FORGEJO__server__SSH_LISTEN_PORT=2222
+      - FORGEJO__api__ENABLE_SWAGGER=${ENABLE_SWAGGER}
+      - FORGEJO____APP_NAME=${APP_NAME}
+    volumes:
+      - ${DATA_PATH}/data:/var/lib/gitea
+      - ${DATA_PATH}/config:/etc/gitea
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - ${WEB_PORT}:3010
+      - ${SSH_PORT}:2222
+    depends_on:
+      - postgres
+    networks:
+      - default
+      - traefik-network
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

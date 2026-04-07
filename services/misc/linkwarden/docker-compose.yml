@@ -1,0 +1,86 @@
+name: linkwarden
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+
+  linkwarden:
+    environment:
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXT_PUBLIC_DISABLE_REGISTRATION=${NEXT_PUBLIC_DISABLE_REGISTRATION:-false}
+      - NEXT_PUBLIC_CREDENTIALS_ENABLED=${NEXT_PUBLIC_CREDENTIALS_ENABLED:-true}
+      - DISABLE_NEW_SSO_USERS=${DISABLE_NEW_SSO_USERS:-}
+      - PAGINATION_TAKE_COUNT=${PAGINATION_TAKE_COUNT:-}
+      - STORAGE_FOLDER=${STORAGE_FOLDER:-}
+      - AUTOSCROLL_TIMEOUT=${AUTOSCROLL_TIMEOUT:-}
+      - BROWSER_TIMEOUT=${BROWSER_TIMEOUT:-}
+      - RE_ARCHIVE_LIMIT=${RE_ARCHIVE_LIMIT:-}
+      - MAX_LINKS_PER_USER=${MAX_LINKS_PER_USER:-}
+      - ARCHIVE_TAKE_COUNT=${ARCHIVE_TAKE_COUNT:-}
+      - IGNORE_UNAUTHORIZED_CA=${IGNORE_UNAUTHORIZED_CA:-}
+      - IGNORE_HTTPS_ERRORS=${IGNORE_HTTPS_ERRORS:-}
+      - IGNORE_URL_SIZE_LIMIT=${IGNORE_URL_SIZE_LIMIT:-}
+      - NEXT_PUBLIC_MAX_FILE_BUFFER=${NEXT_PUBLIC_MAX_FILE_BUFFER:-}
+      - MONOLITH_MAX_BUFFER=${MONOLITH_MAX_BUFFER:-}
+      - PDF_MAX_BUFFER=${PDF_MAX_BUFFER:-}
+      - SCREENSHOT_MAX_BUFFER=${SCREENSHOT_MAX_BUFFER:-}
+      - READABILITY_MAX_BUFFER=${READABILITY_MAX_BUFFER:-}
+      - PREVIEW_MAX_BUFFER=${PREVIEW_MAX_BUFFER:-}
+      - IMPORT_LIMIT=${IMPORT_LIMIT:-}
+      - MAX_WORKERS=${MAX_WORKERS:-}
+      - DISABLE_PRESERVATION=${DISABLE_PRESERVATION:-}
+      - PDF_MARGIN_TOP=${PDF_MARGIN_TOP:-}
+      - PDF_MARGIN_BOTTOM=${PDF_MARGIN_BOTTOM:-}
+      - NEXT_PUBLIC_DEMO=${NEXT_PUBLIC_DEMO:-}
+      - NEXT_PUBLIC_DEMO_USERNAME=${NEXT_PUBLIC_DEMO_USERNAME:-}
+      - NEXT_PUBLIC_DEMO_PASSWORD=${NEXT_PUBLIC_DEMO_PASSWORD:-}
+      - NEXT_PUBLIC_ADMIN=${NEXT_PUBLIC_ADMIN:-}
+      - NEXT_PUBLIC_RSS_POLLING_INTERVAL_MINUTES=${NEXT_PUBLIC_RSS_POLLING_INTERVAL_MINUTES:-}
+      - RSS_SUBSCRIPTION_LIMIT_PER_USER=${RSS_SUBSCRIPTION_LIMIT_PER_USER:-}
+      - NEXT_PUBLIC_OLLAMA_ENDPOINT_URL=${NEXT_PUBLIC_OLLAMA_ENDPOINT_URL:-}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-}
+      - SPACES_KEY=${SPACES_KEY:-}
+      - SPACES_SECRET=${SPACES_SECRET:-}
+      - SPACES_ENDPOINT=${SPACES_ENDPOINT:-}
+      - SPACES_BUCKET_NAME=${SPACES_BUCKET_NAME:-}
+      - SPACES_REGION=${SPACES_REGION:-}
+      - SPACES_FORCE_PATH_STYLE=${SPACES_FORCE_PATH_STYLE:-}
+      - NEXT_PUBLIC_EMAIL_PROVIDER=${NEXT_PUBLIC_EMAIL_PROVIDER:-}
+      - EMAIL_FROM=${EMAIL_FROM:-}
+      - EMAIL_SERVER=${EMAIL_SERVER:-}
+      - BASE_URL=${BASE_URL:-}
+      - PROXY=${PROXY:-}
+      - PROXY_USERNAME=${PROXY_USERNAME:-}
+      - PROXY_PASSWORD=${PROXY_PASSWORD:-}
+      - PROXY_BYPASS=${PROXY_BYPASS:-}
+    restart: always
+    image: ghcr.io/linkwarden/linkwarden:latest
+    ports:
+      - 3000:3000
+    volumes:
+      - ./data:/data/data
+    depends_on:
+      - postgres
+      - meilisearch
+    networks:
+      - default
+      - traefik-network
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.12.8
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY:-}
+    restart: always
+    volumes:
+      - ./meili_data:/meili_data
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

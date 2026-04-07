@@ -1,0 +1,64 @@
+name: tdarr
+
+services:
+  tdarr:
+    container_name: tdarr
+    image: ghcr.io/haveagitgat/tdarr:latest
+    restart: unless-stopped
+    runtime: nvidia
+    ports:
+      - 8265:8265
+      - 8266:8266
+
+    environment:
+      - serverIP=0.0.0.0
+      - serverPort=8266
+      - webUIPort=8265
+      - internalNode=true
+      - inContainer=true
+      - nodeName=InternalNode
+      - TZ=${TZ:-America/New_York}
+      - PUID=1000
+      - PGID=1000
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,video,utility
+
+    volumes:
+      - ${CONFIG_PATH}/server:/app/server
+      - ${CONFIG_PATH}/configs:/app/configs
+      - ${CONFIG_PATH}/logs:/app/logs
+      - ${MEDIA_PATH_MOVIES}:/media/movies
+      - ${MEDIA_PATH_TV}:/media/tv
+      - ${TRANSCODE_CACHE}:/temp
+
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
+
+    networks:
+      - tdarr
+
+  tdarr_mongodb:
+    container_name: tdarr_mongodb
+    image: mongo:4.4
+    restart: unless-stopped
+
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGODB_ROOT_PASSWORD}
+      - TZ=${TZ:-America/New_York}
+
+    volumes:
+      - ${CONFIG_PATH}/mongodb:/data/db
+
+    networks:
+      - tdarr
+
+networks:
+  tdarr:
+    name: tdarr_network

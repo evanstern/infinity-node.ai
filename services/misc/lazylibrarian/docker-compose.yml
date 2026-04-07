@@ -1,0 +1,30 @@
+services:
+  lazylibrarian:
+    image: lscr.io/linuxserver/lazylibrarian:latest
+    container_name: lazylibrarian
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/New_York}
+      - DOCKER_MODS=linuxserver/mods:universal-calibre|linuxserver/mods:lazylibrarian-ffmpeg
+    volumes:
+      - ${CONFIG_PATH}:/config
+      - ${DOWNLOADS_PATH}:/downloads
+      - ${COMPLETE_PATH}:/complete
+      - ${BOOKS_PATH}:/books
+      - ${IMPORT_PATH}:/import
+    ports:
+      - ${LAZYLIBRARIAN_PORT:-5299}:5299
+    restart: unless-stopped
+    networks:
+      - default
+      - traefik-network
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

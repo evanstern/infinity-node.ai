@@ -1,0 +1,35 @@
+---
+services:
+  - vaultwarden
+  - paperless-ngx
+  - immich
+  - navidrome
+  - audiobookshelf
+  - kavita
+  - komga
+  - calibre
+  - mybibliotheca
+  - linkwarden
+  - n8n
+  - actual-budget
+  - homepage
+  - forgejo
+  - cookcli
+  - booklore
+  - fail2ban
+  - mylar3
+  - lazylibrarian
+
+nfs_mounts:
+  - src: 192.168.1.80:/volume1/documents
+    path: /mnt/documents
+    opts: rw,nfsvers=4.1
+  - src: 192.168.1.80:/volume1/media
+    path: /mnt/media
+    opts: rw,nfsvers=4.1
+  - src: 192.168.1.80:/volume1/backups
+    path: /mnt/backups
+    opts: rw,nfsvers=4.1
+
+misc_reverse_proxy: traefik
+misc_secret_source: vaultwarden

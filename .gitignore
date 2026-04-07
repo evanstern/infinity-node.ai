@@ -1,9 +1,27 @@
+# Terraform
 *.tfstate
 *.tfstate.backup
 .terraform/
+.terraform.lock.hcl
 terraform.tfvars
+crash.log
+
+# Secrets — NEVER commit
 *.env
+.env.*
+!.env.j2
 .bw-session
+
+# Python
 __pycache__/
 *.pyc
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Ansible
+*.retry
+
+# Working files
+.sisyphus/

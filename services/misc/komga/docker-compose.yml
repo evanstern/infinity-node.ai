@@ -1,0 +1,28 @@
+name: komga
+
+services:
+  komga:
+    container_name: komga
+    image: gotson/komga:latest
+    restart: unless-stopped
+
+    ports:
+      - ${KOMGA_PORT:-25600}:25600
+
+    environment:
+      - PUID=${PUID:-1000}
+      - PGID=${PGID:-1000}
+      - TZ=${TZ:-America/Toronto}
+      - JAVA_TOOL_OPTIONS=${KOMGA_JAVA_TOOL_OPTIONS:-"-Xms512m -Xmx1g -XX:MaxRAMPercentage=75.0"}
+
+    volumes:
+      - ${KOMGA_CONFIG_PATH:-/home/evan/data/komga/config}:/config
+      - ${KOMGA_LIBRARY_PATH:-/mnt/video/Komga}:/data
+      - ${IMPORT_FOLDER:-/mnt/video/Comics}:/import
+
+    deploy:
+      resources:
+        limits:
+          memory: ${KOMGA_MEMORY_LIMIT:-1G}
+    networks:
+      - default

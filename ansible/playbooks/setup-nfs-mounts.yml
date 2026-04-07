@@ -1,0 +1,41 @@
+---
+- name: Configure NFS mounts from Synology NAS
+  hosts: docker_hosts
+  become: true
+  become_method: sudo
+  gather_facts: true
+
+  vars:
+    nfs_server: "192.168.1.80"
+
+  tasks:
+    - name: Install NFS client packages
+      ansible.builtin.apt:
+        name: nfs-common
+        state: present
+        update_cache: true
+
+    - name: Create NFS mount point directories
+      ansible.builtin.file:
+        path: "{{ item.mount_point }}"
+        state: directory
+        mode: "0755"
+      loop: "{{ nfs_mounts | default([]) }}"
+      when: nfs_mounts is defined and nfs_mounts | length > 0
+
+    - name: Mount NFS shares and add to fstab
+      ansible.posix.mount:
+        src: "{{ nfs_server }}:{{ item.remote_path }}"
+        path: "{{ item.mount_point }}"
+        fstype: nfs
+        opts: "{{ item.options | default('rw,hard,intr,noatime') }}"
+        state: mounted
+      loop: "{{ nfs_mounts | default([]) }}"
+      when: nfs_mounts is defined and nfs_mounts | length > 0
+
+    - name: Verify NFS mounts are accessible
+      ansible.builtin.command:
+        cmd: "mountpoint -q {{ item.mount_point }}"
+      loop: "{{ nfs_mounts | default([]) }}"
+      when: nfs_mounts is defined and nfs_mounts | length > 0
+      changed_when: false

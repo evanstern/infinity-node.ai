@@ -1,0 +1,30 @@
+name: navidrome
+services:
+    navidrome:
+        image: deluan/navidrome:latest
+        container_name: navidrome
+        ports:
+            - ${PORT}:4533
+        volumes:
+            - ${DATA_PATH}:/data
+            - ${MUSIC_PATH}:/music:ro
+            - /home/evan/scripts/navidrome-start.sh:/start.sh:ro
+        environment:
+            - ND_MUSICFOLDER=/music
+            - ND_DATAFOLDER=/data
+            - ND_CONFIGFILE=/data/navidrome.toml
+            - ND_PORT=4533
+            - ND_LASTFM_APIKEY=${LASTFM_API_KEY}
+            - ND_LASTFM_SECRET=${LASTFM_SECRET}
+        entrypoint: []
+        command:
+            - /start.sh
+        restart: unless-stopped
+        networks:
+            - default
+            - traefik-network
+
+networks:
+    traefik-network:
+        external: true
+        name: traefik-network

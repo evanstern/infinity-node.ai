@@ -1,0 +1,61 @@
+---
+- name: Configure NVIDIA GPU passthrough for Emby
+  hosts: emby
+  become: true
+  become_method: sudo
+  gather_facts: true
+
+  tasks:
+    - name: Install nvidia-container-toolkit prerequisites
+      ansible.builtin.apt:
+        name:
+          - curl
+          - gpg
+        state: present
+        update_cache: true
+
+    - name: Add NVIDIA GPG key
+      ansible.builtin.shell: |
+        curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey \
+          | gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+      args:
+        creates: /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg
+
+    - name: Add NVIDIA apt repository
+      ansible.builtin.shell: |
+        curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list \
+          | sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' \
+          | tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+      args:
+        creates: /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+    - name: Update apt cache after adding NVIDIA repo
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Install nvidia-container-toolkit
+      ansible.builtin.apt:
+        name: nvidia-container-toolkit
+        state: present
+
+    - name: Configure Docker daemon for NVIDIA runtime
+      ansible.builtin.command:
+        cmd: nvidia-ctk runtime configure --runtime=docker
+      changed_when: true
+      notify: Restart Docker
+
+    - name: Verify GPU access in Docker
+      ansible.builtin.command:
+        cmd: docker run --rm --gpus all nvidia/cuda:12.0-base nvidia-smi
+      changed_when: false
+      register: gpu_check
+
+    - name: Show GPU verification output
+      ansible.builtin.debug:
+        var: gpu_check.stdout_lines
+
+  handlers:
+    - name: Restart Docker
+      ansible.builtin.systemd:
+        name: docker
+        state: restarted

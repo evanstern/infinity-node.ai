@@ -1,0 +1,28 @@
+name: influxdb
+services:
+  influxdb:
+    image: influxdb:2
+    container_name: influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_ORG: infinity-node
+      DOCKER_INFLUXDB_INIT_BUCKET: telegraf
+      DOCKER_INFLUXDB_INIT_RETENTION: 730d
+    env_file:
+      - .env
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    networks:
+      - default
+      - traefik-network
+
+volumes:
+  influxdb-data:
+
+networks:
+  traefik-network:
+    external: true
+    name: traefik-network

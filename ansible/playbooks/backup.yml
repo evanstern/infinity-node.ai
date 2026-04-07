@@ -1,0 +1,57 @@
+---
+- name: Run backup procedures for critical services
+  hosts: misc
+  become: true
+  become_method: sudo
+  gather_facts: false
+
+  vars:
+    backup_scripts_src: "{{ playbook_dir }}/../../scripts"
+    backup_scripts_dest: /opt/backup-scripts
+
+  tasks:
+    - name: Ensure backup scripts directory exists on target
+      ansible.builtin.file:
+        path: "{{ backup_scripts_dest }}"
+        state: directory
+        mode: "0755"
+
+    - name: Copy backup scripts to target host
+      ansible.builtin.copy:
+        src: "{{ backup_scripts_src }}/{{ item }}"
+        dest: "{{ backup_scripts_dest }}/{{ item }}"
+        mode: "0755"
+      loop:
+        - backup-vaultwarden.sh
+        - backup-calibre-library.sh
+        - backup-mybibliotheca.sh
+
+    - name: Run Vaultwarden backup
+      ansible.builtin.command:
+        cmd: "{{ backup_scripts_dest }}/backup-vaultwarden.sh"
+      changed_when: true
+      register: vaultwarden_backup
+
+    - name: Show Vaultwarden backup result
+      ansible.builtin.debug:
+        var: vaultwarden_backup.stdout_lines
+
+    - name: Run Calibre library backup
+      ansible.builtin.command:
+        cmd: "{{ backup_scripts_dest }}/backup-calibre-library.sh"
+      changed_when: true
+      register: calibre_backup
+
+    - name: Show Calibre backup result
+      ansible.builtin.debug:
+        var: calibre_backup.stdout_lines
+
+    - name: Run MyBibliotheca backup
+      ansible.builtin.command:
+        cmd: "{{ backup_scripts_dest }}/backup-mybibliotheca.sh"
+      changed_when: true
+      register: mybibliotheca_backup
+
+    - name: Show MyBibliotheca backup result
+      ansible.builtin.debug:
+        var: mybibliotheca_backup.stdout_lines

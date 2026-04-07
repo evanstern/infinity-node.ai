@@ -1,0 +1,18 @@
+---
+ansible_become: true
+ansible_become_method: sudo
+ansible_python_interpreter: auto_silent
+
+stack_root: /opt/stacks
+compose_project_owner: root
+compose_project_group: root
+compose_project_mode: "0755"
+
+diun_stack_name: diun
+diun_image: crazymax/diun:latest
+diun_scan_schedule: "0 */6 * * *"
+diun_time_zone: America/New_York
+diun_watch_workers: 10
+diun_gotify_url: https://gotify.local.infinity-node.win
+diun_gotify_token_item: diun-gotify
+diun_gotify_token_field: token

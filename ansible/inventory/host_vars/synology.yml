@@ -1,0 +1,11 @@
+---
+services: []
+
+nfs_exports:
+  - /volume1/media
+  - /volume1/downloads
+  - /volume1/documents
+  - /volume1/backups
+
+synology_nas_role: primary-storage
+synology_backup_target: true

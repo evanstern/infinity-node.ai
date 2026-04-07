@@ -1,0 +1,7 @@
+---
+- name: Provision Docker VM
+  hosts: "{{ target | default('docker_hosts') }}"
+  gather_facts: true
+  roles:
+    - common
+    - docker

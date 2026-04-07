@@ -1,0 +1,6 @@
+---
+- name: Configure managed server
+  hosts: "{{ target | default('docker_hosts:infrastructure') }}"
+  gather_facts: true
+  roles:
+    - common

@@ -1,0 +1,53 @@
+---
+- name: Include OS-specific variables
+  ansible.builtin.include_vars: "{{ ansible_os_family }}.yml"
+
+- name: Update apt cache and upgrade packages
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: safe
+    cache_valid_time: 3600
+  when: ansible_os_family == "Debian"
+
+- name: Update dnf cache and upgrade packages
+  ansible.builtin.dnf:
+    update_cache: true
+    name: "*"
+    state: latest
+  when: ansible_os_family == "RedHat"
+
+- name: Install EPEL repository (RedHat)
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install common packages
+  ansible.builtin.package:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Set hostname
+  ansible.builtin.hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: Ensure ansible user exists
+  ansible.builtin.user:
+    name: "{{ ansible_user_name }}"
+    shell: "{{ ansible_user_shell }}"
+    groups: "{{ sudo_group }}"
+    append: true
+    state: present
+
+- name: Add authorized SSH key for ansible user
+  ansible.posix.authorized_key:
+    user: "{{ ansible_user_name }}"
+    state: present
+    key: "{{ lookup('file', ansible_public_key_file) }}"
+
+- name: Allow ansible user passwordless sudo
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/ansible
+    content: "{{ ansible_user_name }} ALL=(ALL) NOPASSWD:ALL\n"
+    mode: "0440"
+    validate: visudo -cf %s
